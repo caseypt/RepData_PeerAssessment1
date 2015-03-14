@@ -17,20 +17,22 @@ data$date <- as.POSIXct(data$date)
 
 ## What is mean total number of steps taken per day?
 
-1. Calculate the total number of steps taken per day
+*1. Calculate the total number of steps taken per day*
 ```{r}
 total_steps_per_day <- data %>%
   na.omit() %>%
   group_by(date) %>%
   summarize(steps = sum(steps))
+
+print(total_steps_per_day)
 ```
 
-2. Make a histogram of the total number of steps taken each day
+*2. Make a histogram of the total number of steps taken each day*
 ```{r}
 hist(total_steps_per_day$steps)
 ```
 
-3. Calculate and report the mean and median of the total number of steps taken per day
+*3. Calculate and report the mean and median of the total number of steps taken per day*
 ```{r}
 total_steps_per_day %>%
   summarize(mean_steps_per_day = mean(steps),
@@ -39,38 +41,64 @@ total_steps_per_day %>%
 
 ## What is the average daily activity pattern?
 
-1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis).
-```{r}
+*1. Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis).*
 
+We first need to make a new column that contains the interval as an actual time instead of just an integer
+so that we don't have gaps in our graph.
+
+```{r}
+to_hhmm <- function(t) {
+  first <- str_pad(t, 4, pad = 0)
+  hhmm <- strptime((paste(substr(first, 1, 2), ":", substr(first, 3, 4), sep = "")), "%H:%M")
+  
+  hhmm
+}
+
+avg_steps_per_interval <- data %>%
+  na.omit() %>%
+  mutate(interval_time = as.POSIXct(to_hhmm(interval))) %>%
+  group_by(interval_time) %>%
+  summarize(avg_steps = mean(steps))
+
+ggplot(data = avg_steps_per_interval, aes(x = interval_time, y = avg_steps)) + geom_line()
 ```
 
-2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+*2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?*
 ```{r}
+sorted_by_steps <- avg_steps_per_interval %>%
+  arrange(desc(avg_steps))
 
+head(sorted_by_steps, 1)
 ```
 
 
 ## Inputing missing values
 
-1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs).
+*1. Calculate and report the total number of missing values in the dataset (i.e. the total number of rows with NAs).*
+```{r}
+nrow(data) - sum(complete.cases(data))
+```
+
+
+*2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated.*
+
+My stratedgy is to use fill NA values with the mean value for that given interval.
+
+```{r}
+avg_steps_per_interval <- data %>%
+  na.omit() %>%
+  group_by(interval) %>%
+  summarize(avg_steps = mean(steps))
+```
+
+
+*3. Create a new dataset that is equal to the original dataset but with the missing data filled in.*
 ```{r}
 
 ```
 
 
-2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated.
-```{r}
-
-```
-
-
-3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
-```{r}
-
-```
-
-
-4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+*4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?*
 ```{r}
 
 ```
@@ -78,13 +106,13 @@ total_steps_per_day %>%
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+*1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.*
 ```{r}
 
 ```
 
 
-2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+*2. Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).*
 ```{r}
 
 ```
